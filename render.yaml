@@ -1,0 +1,11 @@
+services:
+  # Frontend Web App Only
+  - type: web
+    name: oncomouth-frontend
+    env: node
+    buildCommand: |
+      cd frontend
+      npm install
+      npm run build
+    startCommand: |
+      npx serve -s frontend/build -p $PORT
