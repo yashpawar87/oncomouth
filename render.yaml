@@ -1,11 +1,12 @@
 services:
-  # Frontend Web App Only
-  - type: web
+  # Frontend Static Site
+  - type: static
     name: oncomouth-frontend
-    env: node
     buildCommand: |
       cd frontend
       npm install
       npm run build
-    startCommand: |
-      npx serve -s frontend/build -p $PORT
+    staticPublishPath: frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        sync: false
