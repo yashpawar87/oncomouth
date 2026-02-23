@@ -1,7 +1,7 @@
 services:
   # Frontend Static Site
   - type: web
-    name: oncomouth-frontend
+    name: oncomouth-ai
     env: static
     buildCommand: |
       cd frontend
