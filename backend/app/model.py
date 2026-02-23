@@ -1,20 +1,51 @@
-import mlflow.pytorch
 import torch
+import torch.nn as nn
+import timm
 from PIL import Image
 import io
 from app.preprocessing import transform_image
 from app.gradcam import generate_gradcam
 
-MLFLOW_MODEL_URI = "models:/OncomouthCancerModel/1"
+MODEL_PATH = "models/best_model.pth"
+NUM_CLASSES = 3
+
+class OralCancerModel(nn.Module):
+    def __init__(self, num_classes=3):
+        super().__init__()
+        self.backbone = timm.create_model('efficientnet_b3', pretrained=False, num_classes=0)
+        backbone_out_features = self.backbone.num_features
+        self.classifier = nn.Sequential(
+            nn.Linear(backbone_out_features, 512),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(256, num_classes)
+        )
+
+    def forward(self, x):
+        features = self.backbone(x)
+        return self.classifier(features)
 
 def load_model():
-    model = mlflow.pytorch.load_model(MLFLOW_MODEL_URI)
+    print("Loading model weights directly from PyTorch checkpoint...")
+    model = OralCancerModel(num_classes=NUM_CLASSES)
+    
+    # Load the trained weights
+    checkpoint = torch.load(MODEL_PATH, map_location="cpu", weights_only=False)
+    
+    # Check if the checkpoint is a full dictionary with 'model_state_dict' or just the raw weights
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        state_dict = checkpoint["model_state_dict"]
+    else:
+        state_dict = checkpoint
+        
+    model.load_state_dict(state_dict)
     model.eval()
+    print("✅ Model loaded successfully!")
 
-    # You still need temperature from your checkpoint
-    # Easiest way: store it in a small JSON file
-    temperature = 1.2   # <-- use the value from your training output
-
+    temperature = 1.2
     class_names = ["Normal", "PreCancer", "Cancer"]
 
     return model, temperature, class_names

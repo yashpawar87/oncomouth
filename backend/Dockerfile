@@ -24,11 +24,8 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 # Copy the backend code into the container
 COPY --chown=user . $HOME/app/
 
-# Create MLflow necessary directories if they don't exist
-RUN mkdir -p mlruns mlartifacts && chmod -R 777 mlruns mlartifacts
-
-# Expose port 7860 (Hugging Face default)
+# Expose port (Hugging Face default)
 EXPOSE 7860
 
-# Command to register model first, then run FastAPI app
-CMD python register_model.py && uvicorn app.main:app --host 0.0.0.0 --port 7860
+# Run FastAPI app directly (no MLflow registration required)
+CMD uvicorn app.main:app --host 0.0.0.0 --port 7860
