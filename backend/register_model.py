@@ -63,6 +63,9 @@ def main():
     
     # Start MLflow run and log the model
     print("\nRegistering model with MLflow...")
+    # Explicitly set tracking URI to a local folder to avoid permission errors
+    # if it tries to use an absolute path from a pre-existing sqlite db
+    mlflow.set_tracking_uri("file:./mlruns")
     mlflow.set_experiment("OncoMouth-Cancer-Detection")
     
     with mlflow.start_run(run_name="model-registration"):
